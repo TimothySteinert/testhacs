@@ -2,7 +2,9 @@ from homeassistant.components.sensor import SensorEntity
 from .const import DOMAIN, CONF_ALARMO_ENTITY
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    async_add_entities([HexaOneAlarmStateSensor(hass, entry)])
+    sensor = HexaOneAlarmStateSensor(hass, entry)
+    hass.data[DOMAIN][entry.entry_id]["entities"].append(sensor)
+    async_add_entities([sensor])
 
 class HexaOneAlarmStateSensor(SensorEntity):
     _attr_name = "HexaOne Alarm State"
@@ -12,9 +14,14 @@ class HexaOneAlarmStateSensor(SensorEntity):
         self.hass = hass
         self._entry_id = entry.entry_id
         self._alarmo = entry.data[CONF_ALARMO_ENTITY]
+        self._attr_native_value = "disarmed"
 
-    @property
-    def state(self):
+    def push_update(self):
+        """Force update of HA state."""
+        self._attr_native_value = self.calculate_state()
+        self.async_write_ha_state()
+
+    def calculate_state(self):
         data = self.hass.data[DOMAIN][self._entry_id]
         override = data["override_state"]
         if override:
@@ -36,3 +43,7 @@ class HexaOneAlarmStateSensor(SensorEntity):
         if s == "armed_home": return "armed_home_bypass" if bypassed else "armed_home"
         if s == "armed_away": return "armed_away_bypass" if bypassed else "armed_away"
         return "disarmed"
+
+    @property
+    def native_value(self):
+        return self.calculate_state()
