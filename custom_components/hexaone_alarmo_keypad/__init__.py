@@ -10,7 +10,8 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         CONF_ALARMO_ENTITY: alarmo_entity,
-        "override_state": None,  # can be "failed_to_arm" or "incorrect_pin"
+        "override_state": None,
+        "entities": [],  # keep references to update sensors
     }
 
     # Listen for failed-to-arm events
@@ -18,9 +19,21 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     def handle_failed(event):
         reason = event.data.get("reason")
         if reason == "invalid_code":
-            hass.data[DOMAIN][entry.entry_id]["override_state"] = "incorrect_pin"
+            state = "incorrect_pin"
         else:
-            hass.data[DOMAIN][entry.entry_id]["override_state"] = "failed_to_arm"
+            state = "failed_to_arm"
+
+        hass.data[DOMAIN][entry.entry_id]["override_state"] = state
+        for ent in hass.data[DOMAIN][entry.entry_id]["entities"]:
+            ent.push_update()
+
+        # auto-reset after 2s
+        def reset_override(_now):
+            hass.data[DOMAIN][entry.entry_id]["override_state"] = None
+            for ent in hass.data[DOMAIN][entry.entry_id]["entities"]:
+                ent.push_update()
+
+        hass.loop.call_later(2, reset_override)
 
     hass.bus.async_listen("alarmo_failed_to_arm", handle_failed)
 
