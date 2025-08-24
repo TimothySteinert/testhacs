@@ -1,0 +1,8 @@
+{
+  "name": "HexaOne Alarmo Keypad",
+  "content_in_root": false,
+  "domain": "hexaone_alarmo_keypad",
+  "country": "ALL",
+  "homeassistant": "2024.5.0",
+  "render_readme": true
+}
