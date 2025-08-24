@@ -5,7 +5,7 @@
   "documentation": "https://github.com/TimothySteinert/testhacs",
   "requirements": [],
   "dependencies": [],
-  "codeowners": ["@yourgithub"],
+  "codeowners": ["@TimothySteinert"],
   "iot_class": "local_push",
   "config_flow": true
 }
