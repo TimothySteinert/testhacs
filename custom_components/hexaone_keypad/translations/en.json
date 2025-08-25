@@ -1,0 +1,42 @@
+{
+  "entity": {
+    "sensor": {
+      "hexaone_alarm_state_tracker": {
+        "state": {
+          "armed_home": "Armed Home",
+          "armed_home_bypass": "Armed Home (Bypass)",
+          "armed_away": "Armed Away",
+          "armed_away_bypass": "Armed Away (Bypass)",
+          "armed_night": "Armed Night",
+          "armed_night_bypass": "Armed Night (Bypass)",
+          "armed_vacation": "Armed Vacation",
+          "armed_vacation_bypass": "Armed Vacation (Bypass)",
+          "armed_custom_bypass": "Armed Custom Bypass",
+          "arming_home": "Arming Home",
+          "arming_away": "Arming Away",
+          "arming_night": "Arming Night",
+          "arming_vacation": "Arming Vacation",
+          "arming_custom_bypass": "Arming Custom Bypass",
+          "pending_home": "Pending Home",
+          "pending_away": "Pending Away",
+          "pending_night": "Pending Night",
+          "pending_vacation": "Pending Vacation",
+          "pending_custom_bypass": "Pending Custom Bypass",
+          "disarmed": "Disarmed",
+          "triggered": "Triggered",
+          "unavailable": "Unavailable",
+          "unknown": "Unknown",
+          "failed_to_arm": "Failed to Arm",
+          "incorrect_pin": "Incorrect PIN"
+        }
+      },
+      "hexaone_ready_to_arm": {
+        "state": {
+          "ready": "Ready to Arm",
+          "not_ready": "Not Ready",
+          "unknown": "Unknown"
+        }
+      }
+    }
+  }
+}
