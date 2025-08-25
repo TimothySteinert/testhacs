@@ -1,8 +1,9 @@
 {
   "domain": "hexaone_alarmo_keypad",
   "name": "HexaOne Alarm State",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "documentation": "https://github.com/TimothySteinert/testhacs",
+  "issue_tracker": "https://github.com/TimothySteinert/testhacs/issues",
   "requirements": [],
   "dependencies": [],
   "codeowners": ["@TimothySteinert"],
