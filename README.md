@@ -107,6 +107,28 @@ Triggered
 Failed to Arm
 Incorrect PIN
 
+## What's New
+
+### 0.1.1
+- Added unloading support and internal refactoring for reliability.
+- Improved documentation and metadata for HACS.
+
+## Compatibility
+
+| Integration Version | Minimum HA Version |
+| ------------------- | ------------------ |
+| 0.1.1               | 2024.12.0          |
+
+## Upgrade Instructions
+
+1. In **HACS**, open **Settings → Updates** and install the latest version.
+2. **Restart Home Assistant** to load the update.
+3. Clear your browser cache if the new version doesn't appear.
+
+## Backup Reminder
+
+Back up your `config/` folder before upgrading.
+
 🛠 Development
 
 This integration uses:
@@ -118,6 +140,8 @@ sensor_ui.py → derives pretty state from the raw one.
 __init__.py → wires them together and listens for Alarmo events.
 
 config_flow.py → asks user for the Alarmo entity ID during setup.
+
+*Consider adding unit tests and a GitHub Actions workflow for linting and tests.*
 
 📜 License
 

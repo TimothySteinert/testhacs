@@ -1,10 +1,18 @@
+"""ESPHome-facing raw state sensor for HexaOne Alarmo Keypad."""
+
+from __future__ import annotations
+
 import asyncio
 from datetime import timedelta
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.core import callback
-from .const import DOMAIN, CONF_ALARMO_ENTITY
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.event import (
+    async_track_state_change_event,
+    async_track_time_interval,
+)
+
+from .const import CONF_ALARMO_ENTITY, DOMAIN
 
 
 class HexaOneKeypadEspHomeState(SensorEntity):
@@ -14,30 +22,35 @@ class HexaOneKeypadEspHomeState(SensorEntity):
     _attr_unique_id = "hexaone_keypad_esphome_state"
     _attr_entity_registry_enabled_default = False  # hidden from UI
 
-    def __init__(self, hass, entry):
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        """Initialize the raw state sensor."""
         self.hass = hass
         self._entry_id = entry.entry_id
         self._alarmo = entry.data[CONF_ALARMO_ENTITY]
-        self._override = None
-        self._reset_task = None
+        self._override: str | None = None
+        self._reset_task: asyncio.Task | None = None
         self._attr_native_value = "disarmed"
 
-    async def async_added_to_hass(self):
-    	"""Sync immediately, listen to Alarmo state, and set periodic refresh."""
-    	# Refresh right away
-    	self.update_from_alarmo()
+    async def async_added_to_hass(self) -> None:
+        """Sync immediately, listen to Alarmo state, and set periodic refresh."""
+        # Refresh right away
+        self.update_from_alarmo()
 
-    	@callback
-    	def _alarmo_changed(event):
+        @callback
+        def _alarmo_changed(event) -> None:
+            """Handle state changes from Alarmo."""
             self.update_from_alarmo()
 
-    	async_track_state_change_event(self.hass, [self._alarmo], _alarmo_changed)
+        self.async_on_remove(
+            async_track_state_change_event(self.hass, [self._alarmo], _alarmo_changed)
+        )
+        self.async_on_remove(
+            async_track_time_interval(
+                self.hass, lambda now: self.update_from_alarmo(), timedelta(seconds=30)
+            )
+        )
 
-    	async_track_time_interval(
-            self.hass, lambda now: self.update_from_alarmo(), timedelta(seconds=30)
-    )
-
-    def set_override(self, state: str):
+    def set_override(self, state: str) -> None:
         """Apply override and reset after 2s."""
         self._override = state
         self._attr_native_value = state
@@ -47,7 +60,7 @@ class HexaOneKeypadEspHomeState(SensorEntity):
             self._reset_task.cancel()
         self._reset_task = self.hass.loop.create_task(self._reset_override())
 
-    async def _reset_override(self):
+    async def _reset_override(self) -> None:
         try:
             await asyncio.sleep(2)
         except asyncio.CancelledError:
@@ -55,7 +68,7 @@ class HexaOneKeypadEspHomeState(SensorEntity):
         self._override = None
         self.update_from_alarmo()
 
-    def update_from_alarmo(self):
+    def update_from_alarmo(self) -> None:
         """Recalculate raw Alarmo state if no override active."""
         if self._override:
             return
@@ -71,24 +84,24 @@ class HexaOneKeypadEspHomeState(SensorEntity):
         next_state = alarm_state.attributes.get("next_state", "")
         bypassed = alarm_state.attributes.get("bypassed_sensors")
 
-        if s == "disarmed":
-            val = "disarmed"
-        elif s == "triggered":
-            val = "triggered"
-        elif s == "arming":
+        if s == "arming":
             val = "arming_home" if mode == "armed_home" else "arming_away"
         elif s == "pending":
-            val = "pending_home" if (mode == "armed_home" or next_state == "armed_home") else "pending_away"
-        elif s == "armed_home":
-            val = "armed_home_bypass" if bypassed else "armed_home"
-        elif s == "armed_away":
-            val = "armed_away_bypass" if bypassed else "armed_away"
+            home_mode = mode == "armed_home" or next_state == "armed_home"
+            val = "pending_home" if home_mode else "pending_away"
         else:
-            val = "disarmed"
+            mapping = {
+                "disarmed": "disarmed",
+                "triggered": "triggered",
+                "armed_home": "armed_home_bypass" if bypassed else "armed_home",
+                "armed_away": "armed_away_bypass" if bypassed else "armed_away",
+            }
+            val = mapping.get(s, "disarmed")
 
         self._attr_native_value = val
         self.async_write_ha_state()
 
     @property
-    def native_value(self):
+    def native_value(self) -> str:
+        """Return the current raw value."""
         return self._attr_native_value
